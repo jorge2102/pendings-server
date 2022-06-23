@@ -1,0 +1,64 @@
+service: pending-example
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: sa-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - arn:aws:dynamodb:sa-east-1:952732309741:table/PendingTable 
+
+functions:
+  createPending:
+    handler: src/lambda/pending/addPending.addPending
+    events:
+      - httpApi:
+          path: /pendings
+          method: post
+          cors: true
+  getPendings:
+    handler: src/lambda/pending/getPendings.getPendings
+    events:
+      - httpApi:
+          path: /pendings
+          method: get
+          cors: true
+  updatePending:
+    handler: src/lambda/pending/updatePending.updatePending
+    events:
+      - httpApi:
+          path: /pendings/{id}
+          method: put
+          cors: true
+  filterPending:
+    handler: src/lambda/pending/filterPending.filterPending
+    events:
+      - httpApi:
+          path: /pendings/filter/{description}
+          method: get
+          cors: true
+
+global:
+  api:
+    cors:
+    AllowMethods: "'*'"
+    AllowHeaders: "'*'"
+    AllowOrigin: "'*'"
+
+resources:
+  Resources:
+    PendingTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: PendingTable
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
